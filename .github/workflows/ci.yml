@@ -1,0 +1,37 @@
+name: SRE Observability & Alerting CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-observability:
+    name: Prometheus Rules & Grafana Dashboard CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          pip install PyYAML
+
+      - name: Validate Prometheus Recording & Alerting Rules
+        run: |
+          python3 tests/validate_prometheus_rules.py
+
+      - name: Validate Grafana Dashboards Schema
+        run: |
+          python3 tests/validate_grafana_dashboards.py
+
+      - name: Run SRE Incident & Alertmanager Lifecycle Test
+        run: |
+          python3 tests/simulate_incident_alerting.py

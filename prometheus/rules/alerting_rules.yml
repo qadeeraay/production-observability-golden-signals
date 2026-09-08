@@ -1,0 +1,50 @@
+groups:
+  - name: golden_signals_alerting_rules
+    rules:
+      # Alert 1: Elevated 5xx Error Rate
+      - alert: HighHTTP5xxErrorRate
+        expr: job:http_errors:ratio_rate5m > 0.01
+        for: 2m
+        labels:
+          severity: critical
+          tier: api
+        annotations:
+          summary: "High 5xx error rate detected on {{ $labels.service }}"
+          description: "Service {{ $labels.service }} is experiencing a 5xx error rate of {{ $value | humanizePercentage }} (threshold > 1%)."
+          runbook_url: "https://wiki.corp.internal/runbooks/high-error-rate"
+
+      # Alert 2: High P99 Latency (Degraded User Experience)
+      - alert: HighP99Latency
+        expr: job:http_latency:p99 > 0.300
+        for: 3m
+        labels:
+          severity: warning
+          tier: api
+        annotations:
+          summary: "P99 latency breach on {{ $labels.service }}"
+          description: "99th percentile response time is {{ $value | humanizeDuration }} (threshold: 300ms)."
+          runbook_url: "https://wiki.corp.internal/runbooks/high-latency"
+
+      # Alert 3: Service Outage / Target Down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          tier: infrastructure
+        annotations:
+          summary: "Service target {{ $labels.instance }} is unreachable"
+          description: "Prometheus has failed to scrape {{ $labels.job }} for more than 1 minute."
+          runbook_url: "https://wiki.corp.internal/runbooks/service-down"
+
+      # Alert 4: Multi-Window Error Budget Fast Burn Rate (Google SRE Standard)
+      - alert: FastErrorBudgetBurnRate
+        expr: (job:http_errors:ratio_rate5m / 0.001) > 14.4
+        for: 2m
+        labels:
+          severity: page
+          tier: sre
+        annotations:
+          summary: "Critical 14.4x Error Budget Burn Rate on {{ $labels.service }}"
+          description: "Current error burn rate will exhaust the monthly 99.9% SLO error budget within 50 hours."
+          runbook_url: "https://wiki.corp.internal/runbooks/slo-burn-rate"

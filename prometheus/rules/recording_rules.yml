@@ -1,0 +1,21 @@
+groups:
+  - name: golden_signals_recording_rules
+    rules:
+      # 1. Traffic: Total Request Rate (QPS)
+      - record: job:http_requests:rate5m
+        expr: sum(rate(http_requests_total[5m])) by (service, environment)
+
+      # 2. Errors: 5xx Error Ratio Rate
+      - record: job:http_errors:ratio_rate5m
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (service, environment)
+          /
+          sum(rate(http_requests_total[5m])) by (service, environment)
+
+      # 3. Latency: P99 Request Latency
+      - record: job:http_latency:p99
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))
+
+      # 4. Latency: P50 (Median) Request Latency
+      - record: job:http_latency:p50
+        expr: histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))

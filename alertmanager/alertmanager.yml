@@ -1,0 +1,49 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'service', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'sre-oncall-team'
+  routes:
+    - match:
+        severity: page
+      receiver: 'pagerduty-urgent'
+      continue: true
+    - match:
+        severity: critical
+      receiver: 'slack-critical-channel'
+    - match:
+        severity: warning
+      receiver: 'slack-warnings-channel'
+
+inhibit_rules:
+  # Inhibit warning alerts if a critical alert is already firing on the same service
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['service', 'instance']
+
+receivers:
+  - name: 'sre-oncall-team'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook/sre-general'
+        send_resolved: true
+
+  - name: 'pagerduty-urgent'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook/pagerduty'
+        send_resolved: true
+
+  - name: 'slack-critical-channel'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook/slack-critical'
+        send_resolved: true
+
+  - name: 'slack-warnings-channel'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook/slack-warnings'
+        send_resolved: true
