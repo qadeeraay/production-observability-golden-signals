@@ -19,14 +19,9 @@ scrape_configs:
 
   - job_name: "payment-gateway"
     metrics_path: "/metrics"
+    scrape_interval: 5s
     static_configs:
-      - targets: ["host.docker.internal:8080", "127.0.0.1:8080"]
+      - targets: ["payment-gateway:8080"]
         labels:
           environment: "production"
           service: "payment-gateway"
-
-  - job_name: "node-exporter"
-    static_configs:
-      - targets: ["node-exporter:9100"]
-        labels:
-          environment: "production"

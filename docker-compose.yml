@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  payment-gateway:
+    image: python:3.11-alpine
+    container_name: observability-payment-gateway
+    restart: unless-stopped
+    volumes:
+      - ./payment-gateway:/app
+    working_dir: /app
+    command: python3 -u app.py
+    ports:
+      - "8085:8080"
+    networks:
+      - monitoring
+
   prometheus:
     image: prom/prometheus:v2.51.0
     container_name: observability-prometheus
@@ -15,7 +28,7 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.enable-lifecycle'
     ports:
-      - "9090:9090"
+      - "9091:9090"
     networks:
       - monitoring
 
