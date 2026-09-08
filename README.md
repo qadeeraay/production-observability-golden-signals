@@ -90,21 +90,27 @@ When a `critical` alert is firing on a service instance, all downstream `warning
 
 ## Local Deployment & Verification (Docker Compose)
 
-The entire stack is configured for instant local spin-up with pre-provisioned datasources and dashboards:
+The entire stack is configured for instant local spin-up with pre-provisioned datasources, dashboards, and an instrumented mock microservice:
 
 ```bash
-# 1. Start Prometheus, Alertmanager, Loki, Promtail, and Grafana
+# 1. Start Prometheus, Alertmanager, Loki, Promtail, Grafana, and Payment Gateway
 docker compose up -d
 
-# 2. Access Grafana
-# URL: http://localhost:3000 (admin / admin)
-# Dashboards are auto-loaded under: "SRE & Platform Engineering"
+# 2. Endpoints & Interfaces
+# • Grafana:         http://localhost:3000 (Credentials: admin / admin)
+# • Prometheus:      http://localhost:9091 (Scrape targets: /targets)
+# • Alertmanager:    http://localhost:9093
+# • Payment Gateway: http://localhost:8085 (/metrics)
 
 # 3. Run Automated Validation Checks
 make test
 
-# 4. Generate Synthetic Live Traffic with Fault Injection
-make traffic-chaos
+# 4. Generate Synthetic Live Telemetry
+make traffic         # Healthy baseline traffic (P50 ~ 15ms, 0% errors)
+make traffic-chaos   # Chaos fault injection (triggers 5xx error spikes)
+
+# 5. Simulate End-to-End Incident Lifecycle & Alertmanager Routing
+python3 tests/simulate_incident_alerting.py
 ```
 
 ---
