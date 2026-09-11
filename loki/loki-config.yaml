@@ -30,9 +30,7 @@ limits_config:
   reject_old_samples: true
   reject_old_samples_max_age: 168h
 ---
-# ==============================================================================
-# Promtail Log Shipper Configuration
-# ==============================================================================
+# Promtail log shipper configuration
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
