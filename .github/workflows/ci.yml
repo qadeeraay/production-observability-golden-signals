@@ -33,6 +33,10 @@ jobs:
         run: |
           python3 tests/validate_grafana_dashboards.py
 
+      - name: Run Observability Unit Test Suite
+        run: |
+          python3 -m unittest discover -s tests -p "test_*.py" -v
+
       - name: Run SRE Incident & Alertmanager Lifecycle Test
         run: |
           python3 tests/simulate_incident_alerting.py
